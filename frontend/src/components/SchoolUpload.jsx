@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { supabase } from '../lib/supabaseClient';
 
 const API_URL = '/api';
 
@@ -18,10 +19,41 @@ function SchoolUpload() {
 
     const fetchSchools = async () => {
         try {
-            const response = await axios.get(`${API_URL}/schools`);
-            setSchools(response.data.schools || []);
+            // Fetch directly from Supabase
+            const { data, error } = await supabase
+                .from('schools')
+                .select('*')
+                .order('school_name');
+
+            if (error) throw error;
+            setSchools(data || []);
         } catch (error) {
             console.error('Error fetching schools:', error);
+            // Fallback to local API if needed, or just show empty
+        }
+    };
+
+    const seedDummyData = async () => {
+        const dummySchools = [
+            { school_id: 'SCH001', school_name: 'Green Valley High School', principal_email: 'principal@greenvalley.edu', district: 'North District' },
+            { school_id: 'SCH002', school_name: 'Sunrise Academy', principal_email: 'principal@sunriseacademy.edu', district: 'South District' },
+            { school_id: 'SCH003', school_name: 'Bright Future School', principal_email: 'principal@brightfuture.edu', district: 'East District' },
+            { school_id: 'SCH004', school_name: 'Riverdale International', principal_email: 'contact@riverdale.edu', district: 'West District' },
+            { school_id: 'SCH005', school_name: 'St. Marys Convent', principal_email: 'info@stmarys.edu', district: 'Central District' }
+        ];
+
+        try {
+            setUploading(true);
+            const { error } = await supabase.from('schools').upsert(dummySchools);
+            if (error) throw error;
+
+            setMessage({ type: 'success', text: '✅ Dummy school data added successfully!' });
+            fetchSchools();
+        } catch (error) {
+            console.error('Error seeding data:', error);
+            setMessage({ type: 'error', text: 'Failed to add dummy data: ' + error.message });
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -150,19 +182,32 @@ function SchoolUpload() {
 
                 <div className="form-group">
                     <label htmlFor="school-select">Select Your School *</label>
-                    <select
-                        id="school-select"
-                        value={selectedSchool}
-                        onChange={handleSchoolChange}
-                        disabled={uploading}
-                    >
-                        <option value="">-- Choose School --</option>
-                        {schools.map(school => (
-                            <option key={school.school_id} value={school.school_id}>
-                                {school.school_name} ({school.school_id})
-                            </option>
-                        ))}
-                    </select>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <select
+                            id="school-select"
+                            value={selectedSchool}
+                            onChange={handleSchoolChange}
+                            disabled={uploading}
+                            style={{ flex: 1 }}
+                        >
+                            <option value="">-- Choose School --</option>
+                            {schools.map(school => (
+                                <option key={school.school_id} value={school.school_id}>
+                                    {school.school_name}
+                                </option>
+                            ))}
+                        </select>
+                        {schools.length === 0 && (
+                            <button
+                                className="btn btn-secondary"
+                                onClick={seedDummyData}
+                                disabled={uploading}
+                                title="Click to add sample schools"
+                            >
+                                Seed Dummy Data
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 <div
