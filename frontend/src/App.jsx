@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import { supabase } from './lib/supabaseClient';
 import SchoolUpload from './components/SchoolUpload';
 import AdminPanel from './components/AdminPanel';
 
@@ -33,6 +35,15 @@ function Navigation() {
 }
 
 function App() {
+    // Basic check to verify Supabase connection
+    useEffect(() => {
+        if (supabase) {
+            console.log('Supabase client initialized:', supabase);
+        } else {
+            console.warn('Supabase client not active. Check VITE_SUPABASE_URL in .env');
+        }
+    }, []);
+
     return (
         <Router>
             <Navigation />
