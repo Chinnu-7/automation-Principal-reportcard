@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Report Dashboard - Demo</title>
+    <style>
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #141b3d;
+            --bg-tertiary: #1e2749;
+            --bg-glass: rgba(30, 39, 73, 0.7);
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --info: #3b82f6;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: rgba(148, 163, 184, 0.1);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.2);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --transition-base: 250ms ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            padding: var(--spacing-md) 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: var(--spacing-md);
+            list-style: none;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            transition: all var(--transition-base);
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--spacing-lg);
+        }
+
+        .card {
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-base);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .card-header {
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 3rem;
+            text-align: center;
+            transition: all var(--transition-base);
+            cursor: pointer;
+            background: var(--bg-secondary);
+        }
+
+        .upload-area:hover,
+        .upload-area.drag-over {
+            border-color: var(--accent-primary);
+            background: var(--bg-glass);
+            transform: scale(1.02);
+        }
+
+        .upload-area.drag-over {
+            box-shadow: var(--shadow-glow);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            text-decoration: none;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        select,
+        input[type="file"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-md);
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--info);
+            color: var(--info);
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .badge-approved {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--bg-tertiary);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        tbody tr {
+            transition: background 150ms ease;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-glass);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-brand">📊 NSF School Reports - DEMO</div>
+            <ul class="nav-links">
+                <li><a class="nav-link active" onclick="showPage('upload')">School Upload</a></li>
+                <li><a class="nav-link" onclick="showPage('admin')">Admin Panel</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- School Upload Page -->
+    <div id="uploadPage" class="container">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">📤 Upload Student Data</h1>
+                <p>Upload your school's student response data in Excel format</p>
+            </div>
+
+            <div class="alert alert-warning">
+                ⚠️ <strong>DEMO MODE:</strong> This is a standalone demo. For full functionality with database and n8n
+                automation, please install Node.js and run the full application.
+            </div>
+
+            <div id="message"></div>
+
+            <div class="form-group">
+                <label for="school-select">Select Your School *</label>
+                <select id="school-select">
+                    <option value="">-- Choose School --</option>
+                    <option value="SCH001">Green Valley High School (SCH001)</option>
+                    <option value="SCH002">Sunrise Academy (SCH002)</option>
+                    <option value="SCH003">Bright Future School (SCH003)</option>
+                </select>
+            </div>
+
+            <div class="upload-area" id="uploadArea">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📁</div>
+                <h3>Drag & Drop Excel File Here</h3>
+                <p style="color: var(--text-muted); margin-bottom: 1rem;">or click to browse</p>
+                <p style="font-size: 0.875rem; color: var(--text-muted);">Supported formats: .xlsx, .xls (Max 10MB)</p>
+                <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;">
+            </div>
+
+            <div id="fileInfo" class="hidden alert alert-info" style="margin-top: 1rem;"></div>
+
+            <button class="btn btn-primary" onclick="handleUpload()" style="margin-top: 1rem; width: 100%;">
+                <span>⬆️</span> Upload File (Demo)
+            </button>
+        </div>
+
+        <div class="card" style="background: rgba(59, 130, 246, 0.1);">
+            <h3>ℹ️ Instructions</h3>
+            <ol style="padding-left: 1.5rem; color: var(--text-secondary);">
+                <li>Select your school from the dropdown</li>
+                <li>Upload Excel file with student response data</li>
+                <li>In the full version, NSF Admin will be notified automatically</li>
+                <li>Admin approves, and principal receives automated report</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Admin Panel Page -->
+    <div id="adminPage" class="container hidden">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">🛡️ NSF Admin Panel</h1>
+                <p>Review and approve school data uploads</p>
+            </div>
+
+            <div class="alert alert-warning">
+                ⚠️ <strong>DEMO MODE:</strong> Showing sample data. Install Node.js and run the full application for
+                real database integration.
+            </div>
+
+            <div class="stats-grid">
+                <div class="card stat-card">
+                    <div style="font-size: 2rem;">📊</div>
+                    <h3 class="stat-number">3</h3>
+                    <p class="stat-label">Total Uploads</p>
+                </div>
+                <div class="card stat-card" style="border-color: var(--warning);">
+                    <div style="font-size: 2rem;">⏳</div>
+                    <h3 class="stat-number" style="color: var(--warning);">2</h3>
+                    <p class="stat-label">Pending</p>
+                </div>
+                <div class="card stat-card" style="border-color: var(--success);">
+                    <div style="font-size: 2rem;">✅</div>
+                    <h3 class="stat-number" style="color: var(--success);">1</h3>
+                    <p class="stat-label">Approved</p>
+                </div>
+                <div class="card stat-card" style="border-color: var(--info);">
+                    <div style="font-size: 2rem;">🎉</div>
+                    <h3 class="stat-number" style="color: var(--info);">0</h3>
+                    <p class="stat-label">Completed</p>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>School</th>
+                        <th>File Name</th>
+                        <th>Students</th>
+                        <th>Status</th>
+                        <th>Uploaded</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>#1</td>
+                        <td><strong>Green Valley High School</strong><br><small
+                                style="color: var(--text-muted);">SCH001</small></td>
+                        <td>students_data.xlsx</td>
+                        <td>45</td>
+                        <td><span class="badge badge-pending">⏳ PENDING</span></td>
+                        <td>2026-01-23 10:30 AM</td>
+                        <td>
+                            <button class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem;"
+                                onclick="approveDemo(1)">✅ Approve</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#2</td>
+                        <td><strong>Sunrise Academy</strong><br><small style="color: var(--text-muted);">SCH002</small>
+                        </td>
+                        <td>survey_responses.xlsx</td>
+                        <td>38</td>
+                        <td><span class="badge badge-pending">⏳ PENDING</span></td>
+                        <td>2026-01-23 11:15 AM</td>
+                        <td>
+                            <button class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem;"
+                                onclick="approveDemo(2)">✅ Approve</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#3</td>
+                        <td><strong>Bright Future School</strong><br><small
+                                style="color: var(--text-muted);">SCH003</small></td>
+                        <td>student_feedback.xlsx</td>
+                        <td>52</td>
+                        <td><span class="badge badge-approved">✅ APPROVED</span></td>
+                        <td>2026-01-22 03:45 PM</td>
+                        <td>
+                            <span style="color: var(--text-muted);">Approved</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Page navigation
+        function showPage(page) {
+            const uploadPage = document.getElementById('uploadPage');
+            const adminPage = document.getElementById('adminPage');
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            if (page === 'upload') {
+                uploadPage.classList.remove('hidden');
+                adminPage.classList.add('hidden');
+                navLinks[0].classList.add('active');
+                navLinks[1].classList.remove('active');
+            } else {
+                uploadPage.classList.add('hidden');
+                adminPage.classList.remove('hidden');
+                navLinks[0].classList.remove('active');
+                navLinks[1].classList.add('active');
+            }
+        }
+
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const messageDiv = document.getElementById('message');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) handleFileSelect(file);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleFileSelect(file);
+        });
+
+        function handleFileSelect(file) {
+            if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                fileInfo.textContent = `📄 Selected file: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                fileInfo.classList.remove('hidden');
+                messageDiv.innerHTML = '';
+            } else {
+                messageDiv.innerHTML = '<div class="alert alert-error">Please upload only Excel files (.xlsx or .xls)</div>';
+                fileInfo.classList.add('hidden');
+            }
+        }
+
+        function handleUpload() {
+            const school = document.getElementById('school-select').value;
+            const file = fileInput.files[0];
+
+            if (!school) {
+                messageDiv.innerHTML = '<div class="alert alert-error">Please select a school first</div>';
+                return;
+            }
+
+            if (!file) {
+                messageDiv.innerHTML = '<div class="alert alert-error">Please select a file to upload</div>';
+                return;
+            }
+
+            messageDiv.innerHTML = '<div class="alert alert-success">✅ Demo upload successful! In the full version, this would:<br>• Parse the Excel file<br>• Store data in database<br>• Trigger n8n notification to NSF admin<br>• Track upload status</div>';
+
+            setTimeout(() => {
+                messageDiv.innerHTML += '<div class="alert alert-info">💡 To see the full system in action, install Node.js and run the complete application!</div>';
+            }, 1000);
+        }
+
+        function approveDemo(id) {
+            alert(`✅ Demo Approval!\n\nIn the full version, this would:\n• Update database status to APPROVED\n• Trigger n8n workflow\n• Generate principal report\n• Send email to principal\n• Update status to COMPLETED\n\nInstall Node.js to see the complete automation!`);
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Principal Report Card</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .page {
+            padding: 40px;
+            page-break-after: always;
+        }
+
+        h1,
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #000;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+
+        .info-table td {
+            text-align: left;
+        }
+
+        .signature-section {
+            margin-top: 60px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .signature {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- PAGE 1 : SUBJECT AVERAGES -->
+    <div class="page" id="summary-page">
+        <h1 id="school-name">School Name</h1>
+        <h2>Principal Academic Summary</h2>
+
+        <table id="summary-table">
+            <tr>
+                <th>Subject</th>
+                <th>Average Marks</th>
+                <th>Grade</th>
+            </tr>
+            <!-- Rows will be injected here -->
+        </table>
+
+        <div class="signature-section">
+            <div class="signature">
+                _______________________<br>
+                Principal
+            </div>
+            <div class="signature">
+                Date: <span id="report-date">___________</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 2 : STUDENT DETAILS TEMPLATE -->
+    <!-- We hide this initially and clone it for each student -->
+    <div class="page student-page-template" style="display: none;">
+        <h1>Student Details</h1>
+
+        <table class="info-table">
+            <tr>
+                <td><strong>Student Name</strong></td>
+                <td class="val-name"></td>
+            </tr>
+            <tr>
+                <td><strong>Roll Number</strong></td>
+                <td class="val-roll"></td>
+            </tr>
+            <tr>
+                <td><strong>Class / Section</strong></td>
+                <td class="val-class"></td>
+            </tr>
+            <!-- Dynamic rows will be appended here -->
+        </table>
+    </div>
+
+    <script>
+        async function renderReport() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const uploadId = params.get('id');
+                if (!uploadId) {
+                    console.error('No upload ID provided');
+                    return;
+                }
+
+                const res = await fetch(`/api/report-data/${uploadId}`);
+                const data = await res.json();
+
+                if (!data.success) {
+                    document.body.innerHTML = `<h1>Error: ${data.error}</h1>`;
+                    return;
+                }
+
+                // 1. Setup Summary Page
+                document.getElementById('school-name').textContent = data.school_name || 'School Name';
+                document.getElementById('report-date').textContent = data.report_date || new Date().toLocaleDateString();
+
+                const students = data.students;
+                if (!students || students.length === 0) return;
+
+                // Identify potential subject columns (fields in response_data)
+                // We assume keys in response_data are consistent across students
+                const firstStudentData = students[0].response_data || {};
+                const dataKeys = Object.keys(firstStudentData);
+
+                // Calculate Averages for Summary
+                const summaryTable = document.getElementById('summary-table');
+                const averages = {};
+
+                // Filter for numeric fields to calculate averages
+                const numericKeys = dataKeys.filter(key => {
+                    // Check if at least one student has a numeric value for this key
+                    return students.some(s => {
+                        const val = s.response_data[key];
+                        return val !== '' && !isNaN(parseFloat(val));
+                    });
+                });
+
+                if (numericKeys.length > 0) {
+                    numericKeys.forEach(key => {
+                        let total = 0;
+                        let count = 0;
+                        students.forEach(s => {
+                            const val = parseFloat(s.response_data[key]);
+                            if (!isNaN(val)) {
+                                total += val;
+                                count++;
+                            }
+                        });
+                        if (count > 0) {
+                            const avg = (total / count).toFixed(1);
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `<td>${key}</td><td>${avg}</td><td>${getGrade(avg)}</td>`;
+                            summaryTable.appendChild(tr);
+                        }
+                    });
+                    // Add Overall Average
+                    const totalAvg = Object.values(averages).reduce((a, b) => a + parseFloat(b), 0);
+                    if (Object.keys(averages).length > 0) {
+                        // logic for overall average row if needed, but simple sum / count is enough for rows
+                    }
+                } else {
+                    // If no numeric keys, maybe just list the keys? Or hide table?
+                    // For now, let's show a message or leave header
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td colspan="3">No numeric subject data found for summary.</td>`;
+                    summaryTable.appendChild(tr);
+                }
+
+
+                // 2. Render Student Pages
+                const template = document.querySelector('.student-page-template');
+                const container = document.body;
+
+                students.forEach(student => {
+                    const page = template.cloneNode(true);
+                    page.style.display = 'block'; // Make visible
+                    page.classList.remove('student-page-template'); // Remove marker class
+
+                    // Fill Basic Info
+                    page.querySelector('.val-name').textContent = student.student_name || '';
+                    page.querySelector('.val-roll').textContent = student.roll_number || '';
+                    page.querySelector('.val-class').textContent = student.class || '';
+
+                    const infoTable = page.querySelector('.info-table');
+                    const responseData = student.response_data || {};
+
+                    // Append all other data fields from response_data
+                    Object.entries(responseData).forEach(([key, val]) => {
+                        // Avoid duplicating basic info if it's already in response_data (server.js filters some but not all)
+                        // If it's a long text (like remarks), maybe handle differently? For now, just table rows.
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td><strong>${key}</strong></td><td>${val}</td>`;
+                        infoTable.appendChild(tr);
+                    });
+
+                    container.appendChild(page);
+                });
+
+            } catch (err) {
+                console.error('Render error:', err);
+                document.body.innerHTML += `<p style="color:red">Error rendering report: ${err.message}</p>`;
+            }
+        }
+
+        function getGrade(score) {
+            const s = parseFloat(score);
+            if (isNaN(s)) return '-';
+            if (s >= 90) return 'A+';
+            if (s >= 80) return 'A';
+            if (s >= 70) return 'B+';
+            if (s >= 60) return 'B';
+            if (s >= 50) return 'C';
+            return 'D';
+        }
+
+        // Run
+        renderReport();
+    </script>
+</body>
+
+</html>

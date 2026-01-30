@@ -1,0 +1,148 @@
+{
+    "name": "Upload Notification to NSF Admin",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "new-upload",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "webhook-trigger",
+            "name": "Webhook - New Upload",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ],
+            "webhookId": "new-upload"
+        },
+        {
+            "parameters": {
+                "values": {
+                    "string": [
+                        {
+                            "name": "upload_id",
+                            "value": "={{ $json.body.upload_id }}"
+                        },
+                        {
+                            "name": "school_id",
+                            "value": "={{ $json.body.school_id }}"
+                        },
+                        {
+                            "name": "school_name",
+                            "value": "={{ $json.body.school_name }}"
+                        },
+                        {
+                            "name": "file_name",
+                            "value": "={{ $json.body.file_name }}"
+                        },
+                        {
+                            "name": "total_students",
+                            "value": "={{ $json.body.total_students }}"
+                        },
+                        {
+                            "name": "admin_email",
+                            "value": "={{ $json.body.admin_email }}"
+                        },
+                        {
+                            "name": "uploaded_at",
+                            "value": "={{ $json.body.uploaded_at }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "set-data",
+            "name": "Format Data",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 1,
+            "position": [
+                450,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "fromEmail": "noreply@nsf-reports.com",
+                "toEmail": "={{ $json.admin_email }}",
+                "subject": "🔔 New School Data Upload - Approval Required",
+                "emailType": "html",
+                "message": "<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }\n    .container { max-width: 600px; margin: 0 auto; padding: 20px; }\n    .header { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }\n    .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }\n    .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #6366f1; }\n    .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e9ecef; }\n    .label { font-weight: bold; color: #6366f1; }\n    .button { display: inline-block; padding: 12px 30px; background: #6366f1; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; }\n    .footer { text-align: center; color: #6c757d; margin-top: 30px; font-size: 14px; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1>📊 New Upload Notification</h1>\n      <p>A school has uploaded student data for review</p>\n    </div>\n    <div class=\"content\">\n      <div class=\"info-box\">\n        <h2>Upload Details</h2>\n        <div class=\"info-row\">\n          <span class=\"label\">Upload ID:</span>\n          <span>#{{ $json.upload_id }}</span>\n        </div>\n        <div class=\"info-row\">\n          <span class=\"label\">School:</span>\n          <span>{{ $json.school_name }}</span>\n        </div>\n        <div class=\"info-row\">\n          <span class=\"label\">School ID:</span>\n          <span>{{ $json.school_id }}</span>\n        </div>\n        <div class=\"info-row\">\n          <span class=\"label\">File Name:</span>\n          <span>{{ $json.file_name }}</span>\n        </div>\n        <div class=\"info-row\">\n          <span class=\"label\">Total Students:</span>\n          <span>{{ $json.total_students }}</span>\n        </div>\n        <div class=\"info-row\">\n          <span class=\"label\">Uploaded At:</span>\n          <span>{{ $json.uploaded_at }}</span>\n        </div>\n      </div>\n      <div style=\"text-align: center;\">\n        <a href=\"http://localhost:5173/admin\" class=\"button\">Review Upload in Dashboard</a>\n      </div>\n      <p style=\"margin-top: 20px; color: #6c757d;\">\n        Please login to the admin dashboard to review the uploaded data and approve or reject the submission.\n      </p>\n    </div>\n    <div class=\"footer\">\n      <p>NSF School Reporting System | Automated Notification</p>\n    </div>\n  </div>\n</body>\n</html>",
+                "options": {}
+            },
+            "id": "send-email",
+            "name": "Email NSF Admin",
+            "type": "n8n-nodes-base.emailSend",
+            "typeVersion": 2,
+            "position": [
+                650,
+                300
+            ],
+            "credentials": {
+                "smtp": {
+                    "id": "1",
+                    "name": "SMTP Account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ { \"success\": true, \"message\": \"Notification sent to admin\" } }}"
+            },
+            "id": "respond-webhook",
+            "name": "Respond to Webhook",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                850,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook - New Upload": {
+            "main": [
+                [
+                    {
+                        "node": "Format Data",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Format Data": {
+            "main": [
+                [
+                    {
+                        "node": "Email NSF Admin",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Email NSF Admin": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Webhook",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "active": true,
+    "settings": {},
+    "versionId": "1",
+    "id": "workflow-upload-notification",
+    "meta": {
+        "instanceId": "n8n-instance"
+    },
+    "tags": []
+}

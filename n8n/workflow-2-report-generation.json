@@ -1,0 +1,197 @@
+{
+  "name": "Approval - Report Generation & Email Principal",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "upload-approved",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "c43e9b97-a575-4dcd-96ab-f266ff01066e",
+      "name": "Webhook_Upload_Approved",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "upload-approved"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "upload_id",
+              "value": "={{ $json.body.upload_id }}"
+            },
+            {
+              "name": "school_name",
+              "value": "={{ $json.body.school_name }}"
+            },
+            {
+              "name": "principal_email",
+              "value": "={{ $json.body.principal_email }}"
+            },
+            {
+              "name": "pdf_name",
+              "value": "={{ $json.body.pdf_name }}"
+            },
+            {
+              "name": "pdf_url",
+              "value": "={{ $json.body.pdf_url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "03d1d92f-5e4a-47a7-b867-1454c72256ec",
+      "name": "Extract_Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Extract_Data').item.json.pdf_url }}",
+        "options": {}
+      },
+      "id": "102b5a15-17b3-41b2-9552-9dd749958b8e",
+      "name": "Download_PDF",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "subject": "📊 Student Performance Report - {{ $('Extract_Data').item.json.school_name }}",
+        "options": {}
+      },
+      "id": "12e53e49-9174-41aa-a3b7-406103819573",
+      "name": "Email_Principal",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        608,
+        0
+      ],
+      "webhookId": "9637f89d-6651-4450-a8a7-381179ab2c9f"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/complete-upload",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"upload_id\": {{ $('Extract_Data').item.json.upload_id }}\n}",
+        "options": {}
+      },
+      "id": "976544de-b754-405a-accd-0350a3970b6b",
+      "name": "Update_Status_to_COMPLETED",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message\": \"Email sent to principal\", \"upload_id\": $('Extract_Data').item.json.upload_id } }}",
+        "options": {}
+      },
+      "id": "3f1a172b-0f81-49c9-984e-6603f1480f10",
+      "name": "Respond_to_Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1008,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook_Upload_Approved": {
+      "main": [
+        [
+          {
+            "node": "Extract_Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract_Data": {
+      "main": [
+        [
+          {
+            "node": "Download_PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download_PDF": {
+      "main": [
+        [
+          {
+            "node": "Email_Principal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email_Principal": {
+      "main": [
+        [
+          {
+            "node": "Update_Status_to_COMPLETED",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update_Status_to_COMPLETED": {
+      "main": [
+        [
+          {
+            "node": "Respond_to_Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "21c3f20b-6cc1-48b2-bd27-05a2f3227799",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce35af21357bb42cacdf033cc5cdb1bdc9d560e53a7ec6f0b8bd764a5c19bc12"
+  },
+  "id": "_5WMZWUnzBQdGYQOxkuIB",
+  "tags": []
+}
